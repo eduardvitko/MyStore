@@ -1,0 +1,89 @@
+CREATE DATABASE IF NOT EXISTS my_store_db;
+USE my_store_db;
+
+-- 1. Таблиця користувачів з ENUM ролями
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(50) NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('ADMIN', 'MANAGER', 'USER') NOT NULL DEFAULT 'USER',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Таблиця адрес користувачів
+CREATE TABLE address (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    country VARCHAR(100) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    street VARCHAR(255) NOT NULL,
+    house_number VARCHAR(20),
+    apartment_number VARCHAR(20),
+    postal_code VARCHAR(20),
+    region VARCHAR(100),
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 3. Таблиця категорій товарів
+CREATE TABLE category (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- 4. Таблиця товарів
+CREATE TABLE product (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
+    stock INT DEFAULT 0 CHECK (stock >= 0),
+    category_id INT NULL,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE SET NULL
+);
+
+-- 5. Таблиця зображень товарів
+CREATE TABLE image (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    alt_text VARCHAR(255),
+    is_main BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE
+);
+
+-- 6. Таблиця замовлень
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED') DEFAULT 'PENDING',
+    total DECIMAL(10, 2) DEFAULT 0 CHECK (total >= 0),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 7. Таблиця позицій у замовленні
+CREATE TABLE order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT
+);
+
+-- 8. Таблиця оплат
+CREATE TABLE payment (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    amount DECIMAL(10, 2) NOT NULL CHECK (amount >= 0),
+    method ENUM('credit_card', 'paypal', 'bank_transfer') NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
