@@ -1,4 +1,4 @@
-package com.mystore.entity.entity.entity;
+package com.mystore.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -39,4 +40,3 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
-

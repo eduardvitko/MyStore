@@ -1,4 +1,4 @@
-package com.mystore.entity.entity.entity;
+package com.mystore.entity;
 
 public enum RoleEnum {
     ADMIN,
