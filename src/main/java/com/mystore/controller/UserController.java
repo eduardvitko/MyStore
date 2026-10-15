@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "http://localhost:4200") // Дозволяємо запити з Angular
 @RequiredArgsConstructor
 public class UserController {
 
