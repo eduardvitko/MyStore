@@ -66,4 +66,33 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+    // Оновити дані користувача за ID
+    @Transactional
+    public User updateUser(Integer id, UserRegistrationRequest request) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Користувача з ID " + id + " не знайдено."));
+
+        // Перевіряємо, чи новий username не зайнятий іншим користувачем
+        if (!existingUser.getUsername().equals(request.getUsername()) &&
+                userRepository.existsByUsername(request.getUsername())) {
+            throw new IllegalArgumentException("Користувач із таким ім'ям вже існує!");
+        }
+
+        // Перевіряємо, чи новий email не зайнятий іншим користувачем
+        if (!existingUser.getEmail().equals(request.getEmail()) &&
+                userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Користувач із таким email вже існує!");
+        }
+
+        // Оновлюємо поля
+        existingUser.setUsername(request.getUsername());
+        existingUser.setEmail(request.getEmail());
+        existingUser.setPhone(request.getPhone());
+
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            existingUser.setPasswordHash(request.getPassword()); // Пізніше додамо сюди шифрування
+        }
+
+        return userRepository.save(existingUser);
+    }
 }
