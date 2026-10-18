@@ -2,6 +2,7 @@ package com.mystore.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,7 +18,10 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // Дозволяємо абсолютно всі запити без авторизації
+                        // Дозволяємо попередні OPTIONS запити для CORS
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Дозволяємо абсолютно всі інші запити
+                        .anyRequest().permitAll()
                 );
 
         return http.build();
