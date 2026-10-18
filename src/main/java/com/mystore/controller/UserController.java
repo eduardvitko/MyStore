@@ -34,8 +34,8 @@ public class UserController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    // Реєстрація нового користувача
-    @PostMapping("/register")
+    // Реєстрація нового користувача (підтримує і з слешем, і без)
+    @PostMapping({"/register", "/register/"})
     public ResponseEntity<User> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
         User registeredUser = userService.registerUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(registeredUser);
