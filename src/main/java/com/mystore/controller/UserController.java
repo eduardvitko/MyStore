@@ -18,6 +18,12 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    // Реєстрація нового користувача (підтримує і з слешем, і без)
+    @PostMapping({"/register", "/register/"})
+    public ResponseEntity<User> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
+        User registeredUser = userService.registerUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(registeredUser);
+    }
 
     // Отримати список усіх користувачів
     @GetMapping
@@ -34,12 +40,7 @@ public class UserController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    // Реєстрація нового користувача (підтримує і з слешем, і без)
-    @PostMapping({"/register", "/register/"})
-    public ResponseEntity<User> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
-        User registeredUser = userService.registerUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(registeredUser);
-    }
+
 
     // Оновити користувача за ID
     @PutMapping("/{id}")
