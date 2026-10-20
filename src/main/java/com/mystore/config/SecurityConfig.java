@@ -24,6 +24,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Дозволяємо попередні OPTIONS запити для CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // ОБМЕЖЕННЯ: Отримувати список всіх користувачів може тільки ADMIN
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority("ADMIN")
+
                         // Дозволяємо абсолютно всі інші запити
                         .anyRequest().permitAll()
                 );
