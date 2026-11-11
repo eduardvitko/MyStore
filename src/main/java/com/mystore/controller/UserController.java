@@ -59,7 +59,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
     // Ендпоінт для входу за поштою
-    @PostMapping({"/login", "/login/"})
+    @PostMapping({"/login"})
     public ResponseEntity<?> loginUser(@RequestBody java.util.Map<String, String> request) {
         String email = request.get("email");
         if (email == null || email.isBlank()) {
