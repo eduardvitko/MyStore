@@ -58,7 +58,7 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-    // Ендпоінт для входу за поштою
+    // Ендпоінт для входу за поштою користувача
     @PostMapping({"/login"})
     public ResponseEntity<?> loginUser(@RequestBody java.util.Map<String, String> request) {
         String email = request.get("email");
