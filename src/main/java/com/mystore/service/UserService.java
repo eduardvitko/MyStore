@@ -5,6 +5,7 @@ import com.mystore.entity.RoleEnum;
 import com.mystore.entity.User;
 import com.mystore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder; // Імпорт енкодера
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder; // Додаємо залежність для шифрування
 
     // Отримати список усіх користувачів
     public List<User> getAllUsers() {
@@ -32,26 +34,31 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
-    // Знайти користувача за email
+    // Знайти користувача за email (з нормалізацією)
     public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+        if (email == null) return Optional.empty();
+        return userRepository.findByEmail(email.trim().toLowerCase());
     }
 
     // Реєстрація нового користувача через DTO
     @Transactional
     public User registerUser(UserRegistrationRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
+        // Нормалізуємо email (приводимо до нижнього регістру і прибираємо пробіли)
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+        String normalizedUsername = request.getUsername().trim();
+
+        if (userRepository.existsByUsername(normalizedUsername)) {
             throw new IllegalArgumentException("Користувач із таким ім'ям вже існує!");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(normalizedEmail)) {
             throw new IllegalArgumentException("Користувач із таким email вже існує!");
         }
 
         User newUser = User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
+                .username(normalizedUsername)
+                .email(normalizedEmail)
                 .phone(request.getPhone())
-                .passwordHash(request.getPassword()) // Пізніше додамо сюди шифрування
+                .passwordHash(passwordEncoder.encode(request.getPassword())) // Шифруємо пароль!
                 .role(RoleEnum.USER)
                 .build();
 
@@ -66,31 +73,32 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
     // Оновити дані користувача за ID
     @Transactional
     public User updateUser(Integer id, UserRegistrationRequest request) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Користувача з ID " + id + " не знайдено."));
 
-        // Перевіряємо, чи новий username не зайнятий іншим користувачем
-        if (!existingUser.getUsername().equals(request.getUsername()) &&
-                userRepository.existsByUsername(request.getUsername())) {
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+        String normalizedUsername = request.getUsername().trim();
+
+        if (!existingUser.getUsername().equals(normalizedUsername) &&
+                userRepository.existsByUsername(normalizedUsername)) {
             throw new IllegalArgumentException("Користувач із таким ім'ям вже існує!");
         }
 
-        // Перевіряємо, чи новий email не зайнятий іншим користувачем
-        if (!existingUser.getEmail().equals(request.getEmail()) &&
-                userRepository.existsByEmail(request.getEmail())) {
+        if (!existingUser.getEmail().equals(normalizedEmail) &&
+                userRepository.existsByEmail(normalizedEmail)) {
             throw new IllegalArgumentException("Користувач із таким email вже існує!");
         }
 
-        // Оновлюємо поля
-        existingUser.setUsername(request.getUsername());
-        existingUser.setEmail(request.getEmail());
+        existingUser.setUsername(normalizedUsername);
+        existingUser.setEmail(normalizedEmail);
         existingUser.setPhone(request.getPhone());
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            existingUser.setPasswordHash(request.getPassword()); // Пізніше додамо сюди шифрування
+            existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword())); // Шифруємо новий пароль
         }
 
         return userRepository.save(existingUser);
