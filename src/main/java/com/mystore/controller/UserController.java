@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -56,5 +57,22 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+    // Ендпоінт для входу за поштою
+    @PostMapping({"/login", "/login/"})
+    public ResponseEntity<?> loginUser(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body("Email не може бути порожнім");
+        }
+
+        // Шукаємо користувача за нормалізованою поштою
+        Optional<User> userOptional = userService.getUserByEmail(email.trim().toLowerCase());
+
+        if (userOptional.isPresent()) {
+            return ResponseEntity.ok(userOptional.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Користувача з таким email не знайдено!");
+        }
     }
 }
