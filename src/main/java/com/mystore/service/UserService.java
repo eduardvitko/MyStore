@@ -34,10 +34,9 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
-    // Знайти користувача за email (з нормалізацією)
-    public Optional<User> getUserByEmail(String email) {
-        if (email == null) return Optional.empty();
-        return userRepository.findByEmail(email.trim().toLowerCase());
+    public User getUserByEmail(String email) {
+        if (email == null) return null;
+        return userRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
     }
 
     // Реєстрація нового користувача через DTO
