@@ -99,7 +99,9 @@ public class UserService {
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword())); // Шифруємо новий пароль
         }
-
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            existingUser.setRole(RoleEnum.valueOf(request.getRole().toUpperCase()));
+        }
         return userRepository.save(existingUser);
     }
 }

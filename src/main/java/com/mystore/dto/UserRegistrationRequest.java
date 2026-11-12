@@ -21,4 +21,5 @@ public class UserRegistrationRequest {
     @NotBlank(message = "Пароль не може бути порожнім")
     @Size(min = 6, message = "Пароль повинен містити щонайменше 6 символів")
     private String password;
+    private String role;
 }
