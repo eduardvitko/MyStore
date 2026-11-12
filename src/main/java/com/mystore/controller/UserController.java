@@ -70,24 +70,26 @@ public class UserController {
     // Ендпоінт для входу за поштою юзера
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-        // 1. Шукаємо користувача в базі (метод повертає User, а не Optional)
         User user = userService.getUserByEmail(loginRequest.getEmail());
 
         if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Невірний email або пароль");
         }
 
-        // 2. Створюємо об'єкт аутентифікації для Spring Security
+        // Динамічно беремо роль із бази даних (щоб для звичайних юзерів ставився USER, а для адмінів — ADMIN)
+        String roleName = user.getRole() != null ? user.getRole().name() : "USER";
+
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
                 null,
-                List.of(new SimpleGrantedAuthority("ADMIN")) // або зчитуємо з бази
+                List.of(new SimpleGrantedAuthority(roleName))
         );
 
-        // 3. Зберігаємо в контекст безпеки та сесію
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Виправляємо збереження сесії, використовуючи правильний ключ Spring Security
         HttpSession session = request.getSession(true);
-        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+        session.setAttribute(org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
 
         return ResponseEntity.ok(user);
     }
